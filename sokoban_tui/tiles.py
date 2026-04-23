@@ -64,7 +64,3 @@ def player(on_goal: bool) -> tuple[str, Style]:
     if on_goal:
         return GLYPH_PLAYER_ON_GOAL, _PLAYER_ON_GOAL_STYLE
     return GLYPH_PLAYER, _PLAYER_STYLE
-
-
-# Unknown-class fallback — magenta so it's obvious during dev.
-UNKNOWN = Style.parse("bold rgb(255,0,255) on rgb(0,0,0)")

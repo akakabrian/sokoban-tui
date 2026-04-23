@@ -10,7 +10,6 @@ All coordinates are (x, y) with y going DOWN (screen convention).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Iterable
 
 # Terrain cells. Boxes/player are layered on top.
 FLOOR = " "

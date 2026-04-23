@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, cast
+
 from rich.text import Text
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -9,6 +11,9 @@ from textual.containers import Vertical
 from textual.screen import ModalScreen
 from textual.widgets import Static, OptionList
 from textual.widgets.option_list import Option
+
+if TYPE_CHECKING:
+    from .app import SokobanApp
 
 
 class HelpScreen(ModalScreen):
@@ -79,18 +84,25 @@ class WonScreen(ModalScreen):
     # against the App. Keeping the action chain simple means a failure in
     # one branch doesn't leave us stacked on a dead modal.
 
+    def _sokoban_app(self) -> "SokobanApp":
+        from .app import SokobanApp
+        return cast(SokobanApp, self.app)
+
     def action_next(self) -> None:
+        app = self._sokoban_app()
         if self.has_next:
-            self.app.pop_screen()
-            self.app.action_next_level()
+            app.pop_screen()
+            app.action_next_level()
 
     def action_retry(self) -> None:
-        self.app.pop_screen()
-        self.app.action_reset()
+        app = self._sokoban_app()
+        app.pop_screen()
+        app.action_reset()
 
     def action_select(self) -> None:
-        self.app.pop_screen()
-        self.app.action_select_level()
+        app = self._sokoban_app()
+        app.pop_screen()
+        app.action_select_level()
 
     def action_close(self) -> None:
         self.app.pop_screen()
@@ -165,6 +177,8 @@ class LevelSelectScreen(ModalScreen):
         _, pack_name, idx_s = opt_id.split(":")
         idx = int(idx_s)
         pack = next(p for p in self._packs if p.name == pack_name)
-        self.app.pop_screen()
+        from .app import SokobanApp
+        app = cast(SokobanApp, self.app)
+        app.pop_screen()
         # Call the app helper to switch levels.
-        self.app.load_level(pack, idx)
+        app.load_level(pack, idx)

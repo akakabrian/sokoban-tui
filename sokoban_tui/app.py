@@ -10,15 +10,13 @@ Widgets:
 
 from __future__ import annotations
 
-from pathlib import Path
-
 from rich.segment import Segment
 from rich.style import Style
 from rich.text import Text
-from textual import events
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
+from textual.geometry import Size
 from textual.strip import Strip
 from textual.widget import Widget
 from textual.widgets import Footer, Header, RichLog, Static
@@ -61,11 +59,13 @@ class BoardView(Widget):
         super().__init__(**kw)
         self._app = app_ref
 
-    def get_content_width(self, container, viewport) -> int:
+    def get_content_width(self, container: Size, viewport: Size) -> int:
         g = self._app.game
         return max(g.width + 4, 10) if g else 10
 
-    def get_content_height(self, container, viewport) -> int:
+    def get_content_height(
+        self, container: Size, viewport: Size, width: int
+    ) -> int:
         g = self._app.game
         return max(g.height + 2, 5) if g else 5
 

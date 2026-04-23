@@ -181,7 +181,6 @@ async def s_undo_key_works(app, pilot):
 
 async def s_reset_key_works(app, pilot):
     # Make a move, then reset.
-    start_moves = app.game.moves
     await pilot.press("right")
     await pilot.press("left")
     await pilot.press("up")

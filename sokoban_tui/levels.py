@@ -87,7 +87,7 @@ def _load_skinner_file(path: Path, name: str, display: str) -> Pack:
     title = ""
 
     def flush() -> None:
-        nonlocal buf, title
+        nonlocal buf
         if buf:
             # Strip trailing empty lines inside the buffer.
             body = "\n".join(buf).rstrip()

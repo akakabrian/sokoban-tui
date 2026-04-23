@@ -3,7 +3,6 @@ to catch future regressions — the baseline numbers are microseconds."""
 
 from __future__ import annotations
 
-import statistics
 import time
 from pathlib import Path
 
