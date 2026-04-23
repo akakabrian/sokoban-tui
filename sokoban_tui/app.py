@@ -323,11 +323,15 @@ class SokobanApp(App):
         if self.level_idx + 1 < len(self.pack):
             self.level_idx += 1
             self._load_current()
+        else:
+            self._flash(f"end of pack ({self.pack.display})")
 
     def action_prev_level(self) -> None:
         if self.level_idx > 0:
             self.level_idx -= 1
             self._load_current()
+        else:
+            self._flash(f"start of pack ({self.pack.display})")
 
     def action_select_level(self) -> None:
         self.push_screen(LevelSelectScreen(PACKS, self.pack, self.level_idx))

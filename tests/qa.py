@@ -321,6 +321,70 @@ async def s_unknown_glyph_does_not_crash(app, pilot):
     assert len(list(strip)) > 0
 
 
+async def s_parse_empty_rejected(app, pilot):
+    try:
+        Game.parse("")
+        ok = False
+    except ValueError:
+        ok = True
+    assert ok, "expected ValueError on empty input"
+
+
+async def s_parse_no_player_rejected(app, pilot):
+    try:
+        Game.parse("####\n#..#\n####")
+        ok = False
+    except ValueError:
+        ok = True
+    assert ok, "expected ValueError when no @/+ in level"
+
+
+async def s_next_at_end_doesnt_crash(app, pilot):
+    """Pressing next past the last level stays on the last level and flashes
+    rather than wrapping or crashing."""
+    # Jump to last level of the pack.
+    app.level_idx = len(app.pack) - 1
+    app._load_current()
+    await pilot.pause()
+    await pilot.press("n")
+    await pilot.pause()
+    assert app.level_idx == len(app.pack) - 1
+
+
+async def s_prev_at_start_doesnt_crash(app, pilot):
+    """Pressing prev on level 0 stays put, no crash."""
+    app.level_idx = 0
+    app._load_current()
+    await pilot.pause()
+    await pilot.press("p")
+    await pilot.pause()
+    assert app.level_idx == 0
+
+
+async def s_undo_after_reset_is_noop(app, pilot):
+    """After reset the undo stack must be empty."""
+    await pilot.press("right")
+    await pilot.press("down")
+    await pilot.pause()
+    await pilot.press("r")
+    await pilot.pause()
+    # Undo should do nothing; game shouldn't advance moves.
+    moves_before = app.game.moves
+    await pilot.press("u")
+    await pilot.pause()
+    assert app.game.moves == moves_before
+
+
+async def s_all_packs_level_one_mountable(app, pilot):
+    """Every pack's level 0 must load via app.load_level without raising."""
+    for p in PACKS:
+        app.load_level(p, 0)
+        await pilot.pause()
+        assert app.game is not None
+        assert app.pack.name == p.name
+        assert app.level_idx == 0
+
+
 async def s_move_counter_increments(app, pilot):
     """A successful move must bump moves by exactly 1. A blocked move
     must not bump anything."""
@@ -354,6 +418,8 @@ SCENARIOS: list[Scenario] = [
     Scenario("box_on_goal_parses", s_box_on_goal_star_glyph),
     Scenario("already_solved_detected", s_already_solved),
     Scenario("bad_level_rejected", s_parse_bad_level_rejected),
+    Scenario("empty_level_rejected", s_parse_empty_rejected),
+    Scenario("no_player_level_rejected", s_parse_no_player_rejected),
     # Level loader
     Scenario("packs_nonempty", s_packs_nonempty),
     Scenario("all_levels_parse", s_all_levels_parse),
@@ -373,6 +439,11 @@ SCENARIOS: list[Scenario] = [
     Scenario("move_counter_increments", s_move_counter_increments),
     Scenario("win_shows_modal", s_win_shows_modal),
     Scenario("unknown_glyph_does_not_crash", s_unknown_glyph_does_not_crash),
+    # Robustness (Stage 6)
+    Scenario("next_at_end_doesnt_crash", s_next_at_end_doesnt_crash),
+    Scenario("prev_at_start_doesnt_crash", s_prev_at_start_doesnt_crash),
+    Scenario("undo_after_reset_is_noop", s_undo_after_reset_is_noop),
+    Scenario("all_packs_level_one_mountable", s_all_packs_level_one_mountable),
 ]
 
 
