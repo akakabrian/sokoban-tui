@@ -229,6 +229,11 @@ class SokobanApp(App):
         )
         self.level_idx = max(0, min(level_idx, len(self.pack) - 1))
         self.game: Game | None = None
+        # Increments on every movement attempt (including blocked moves).
+        # Dogfood/state probes use this to distinguish "input ignored"
+        # from "input accepted but no world change".
+        self._input_serial = 0
+        self._last_move_reason = "init"
         # widgets — attached in compose()
         self.board: BoardView | None = None
         self.status_panel: StatusPanel | None = None
@@ -260,6 +265,8 @@ class SokobanApp(App):
     def _load_current(self) -> None:
         data: LevelData = self.pack[self.level_idx]
         self.game = data.load()
+        self._input_serial = 0
+        self._last_move_reason = "loaded"
         self.sub_title = f"{self.pack.display} — level {self.level_idx + 1}/{len(self.pack)}"
         if self.status_panel:
             self.status_panel.refresh_panel()
@@ -282,16 +289,53 @@ class SokobanApp(App):
         self.level_idx = max(0, min(idx, len(pack) - 1))
         self._load_current()
 
+    def _modal_open(self) -> bool:
+        return len(self.screen_stack) > 1
+
+    def state_snapshot(self) -> dict[str, object]:
+        g = self.game
+        if g is None:
+            return {
+                "screen": self.screen.__class__.__name__,
+                "stack_len": len(self.screen_stack),
+                "pack": self.pack.name,
+                "level_idx": self.level_idx,
+                "level_count": len(self.pack),
+                "ready": False,
+                "input_serial": self._input_serial,
+                "last_move_reason": self._last_move_reason,
+            }
+        on_goal = sum(1 for b in g.boxes if b in g.goals)
+        return {
+            "screen": self.screen.__class__.__name__,
+            "stack_len": len(self.screen_stack),
+            "pack": self.pack.name,
+            "level_idx": self.level_idx,
+            "level_count": len(self.pack),
+            "player": [g.player[0], g.player[1]],
+            "moves": g.moves,
+            "pushes": g.pushes,
+            "boxes": len(g.boxes),
+            "boxes_on_goal": on_goal,
+            "solved": g.is_solved(),
+            "ready": True,
+            "input_serial": self._input_serial,
+            "last_move_reason": self._last_move_reason,
+        }
+
     # --- actions ----------------------------------------------------------
 
     def action_move(self, dx: int, dy: int) -> None:
-        if self.game is None:
+        if self._modal_open() or self.game is None:
             return
+        self._input_serial += 1
         r: MoveResult = self.game.move(dx, dy)
         if not r.moved:
+            self._last_move_reason = r.reason
             # Don't spam the log — flash-only feedback.
             self._flash(f"blocked ({r.reason})")
         else:
+            self._last_move_reason = "moved"
             self._flash(
                 f"moves {self.game.moves}  pushes {self.game.pushes}"
             )
@@ -300,10 +344,14 @@ class SokobanApp(App):
         if self.status_panel:
             self.status_panel.refresh_panel()
         if r.won:
+            self._last_move_reason = "won"
             self._on_win()
 
     def action_undo(self) -> None:
+        if self._modal_open():
+            return
         if self.game and self.game.undo():
+            self._last_move_reason = "undo"
             self._flash(f"undo — moves {self.game.moves}  pushes {self.game.pushes}")
             if self.board:
                 self.board.refresh()
@@ -311,6 +359,8 @@ class SokobanApp(App):
                 self.status_panel.refresh_panel()
 
     def action_reset(self) -> None:
+        if self._modal_open():
+            return
         if self.game is None:
             return
         # Re-parse rather than undo-to-zero so we're immune to any state
@@ -320,6 +370,8 @@ class SokobanApp(App):
             self.message_log.write("[rgb(220,180,90)]↺ reset[/]")
 
     def action_next_level(self) -> None:
+        if self._modal_open():
+            return
         if self.level_idx + 1 < len(self.pack):
             self.level_idx += 1
             self._load_current()
@@ -327,6 +379,8 @@ class SokobanApp(App):
             self._flash(f"end of pack ({self.pack.display})")
 
     def action_prev_level(self) -> None:
+        if self._modal_open():
+            return
         if self.level_idx > 0:
             self.level_idx -= 1
             self._load_current()
@@ -334,9 +388,13 @@ class SokobanApp(App):
             self._flash(f"start of pack ({self.pack.display})")
 
     def action_select_level(self) -> None:
+        if self._modal_open():
+            return
         self.push_screen(LevelSelectScreen(PACKS, self.pack, self.level_idx))
 
     def action_help(self) -> None:
+        if self._modal_open():
+            return
         self.push_screen(HelpScreen())
 
     # --- win flow ---------------------------------------------------------

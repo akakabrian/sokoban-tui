@@ -404,6 +404,70 @@ async def s_move_counter_increments(app, pilot):
     assert app.game.pushes == 1, app.game.pushes
 
 
+async def s_state_snapshot_tracks_inputs(app, pilot):
+    """state_snapshot must reflect both blocked and successful inputs.
+    This prevents "frozen state" false-positives in exploratory drivers."""
+    app.game = Game.parse("#####\n#@$.#\n#####")
+    app.board.refresh()
+    app.status_panel.refresh_panel()
+    await pilot.pause()
+
+    snap0 = app.state_snapshot()
+    serial0 = snap0.get("input_serial")
+    assert isinstance(serial0, int)
+
+    # Blocked move: left into wall.
+    await pilot.press("left")
+    await pilot.pause()
+    snap1 = app.state_snapshot()
+    serial1 = snap1.get("input_serial")
+    moves1 = snap1.get("moves")
+    assert isinstance(serial1, int)
+    assert isinstance(moves1, int)
+    assert serial1 == serial0 + 1
+    assert moves1 == 0
+
+    # Successful move: right pushes box onto goal.
+    await pilot.press("right")
+    await pilot.pause()
+    snap2 = app.state_snapshot()
+    serial2 = snap2.get("input_serial")
+    moves2 = snap2.get("moves")
+    player2 = snap2.get("player")
+    assert isinstance(serial2, int)
+    assert isinstance(moves2, int)
+    assert isinstance(player2, list)
+    assert serial2 == serial1 + 1
+    assert moves2 == 1
+    assert player2 != [1, 1]
+
+
+async def s_modal_blocks_priority_game_actions(app, pilot):
+    """Priority movement keys must not mutate game state behind a modal."""
+    app.game = Game.parse("#####\n#@$.#\n#####")
+    app.board.refresh()
+    app.status_panel.refresh_panel()
+    await pilot.pause()
+    start = app.game.player
+
+    await pilot.press("L")
+    await pilot.pause()
+    assert app.screen.__class__.__name__ == "LevelSelectScreen"
+
+    await pilot.press("right")
+    await pilot.pause()
+    assert app.game.player == start
+    assert app.game.moves == 0
+
+    await pilot.press("u")
+    await pilot.pause()
+    assert app.game.moves == 0
+
+    await pilot.press("escape")
+    await pilot.pause()
+    assert app.screen.__class__.__name__ == "Screen"
+
+
 SCENARIOS: list[Scenario] = [
     # Engine-only (fast)
     Scenario("parse_xsb_minimal", s_parse_xsb_minimal),
@@ -436,6 +500,8 @@ SCENARIOS: list[Scenario] = [
     Scenario("status_panel_shows_counters", s_status_panel_shows_counters),
     Scenario("status_panel_throttles", s_status_panel_throttles),
     Scenario("move_counter_increments", s_move_counter_increments),
+    Scenario("state_snapshot_tracks_inputs", s_state_snapshot_tracks_inputs),
+    Scenario("modal_blocks_priority_game_actions", s_modal_blocks_priority_game_actions),
     Scenario("win_shows_modal", s_win_shows_modal),
     Scenario("unknown_glyph_does_not_crash", s_unknown_glyph_does_not_crash),
     # Robustness (Stage 6)

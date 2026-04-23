@@ -46,6 +46,12 @@ async def playtest() -> int:
         await pilot.pause()
         if app.screen.__class__.__name__ != "LevelSelectScreen":
             failures.append("level-select did not open")
+        # Priority game keys must not leak behind modals.
+        modal_moves_before = app.game.moves
+        await pilot.press("right")
+        await pilot.pause()
+        if app.game.moves != modal_moves_before:
+            failures.append("movement key leaked through LevelSelect modal")
         app.save_screenshot(str(OUT / "playtest_02_level_select.svg"))
         await pilot.press("escape")
         await pilot.pause()
@@ -66,6 +72,10 @@ async def playtest() -> int:
         # Push the box right into the goal (solve in one).
         await pilot.press("right")
         await pilot.pause()
+        snap = app.state_snapshot()
+        serial = snap.get("input_serial")
+        if not isinstance(serial, int) or serial < 1:
+            failures.append(f"state_snapshot input serial invalid: {serial!r}")
         if app.game.player == start_player:
             failures.append("player did not move after pressing right")
         if app.game.boxes == start_boxes:

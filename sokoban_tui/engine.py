@@ -207,6 +207,23 @@ class Game:
         while self.undo():
             pass
 
+    def state_snapshot(self) -> dict[str, object]:
+        """Return a JSON-safe snapshot for tooling and agent adapters."""
+        boxes = [[x, y] for x, y in sorted(self.boxes)]
+        goals = [[x, y] for x, y in sorted(self.goals)]
+        return {
+            "width": self.width,
+            "height": self.height,
+            "player": [self.player[0], self.player[1]],
+            "boxes": boxes,
+            "goals": goals,
+            "moves": self.moves,
+            "pushes": self.pushes,
+            "undo_depth": len(self._undo),
+            "solved": self.is_solved(),
+            "title": self.title,
+        }
+
 
 # ----------------------------------------------------------------------
 # helpers
