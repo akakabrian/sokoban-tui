@@ -1,0 +1,18 @@
+[project]
+name = "sokoban-tui"
+version = "0.1.0"
+description = "Terminal-native Sokoban with XSokoban + Microban level packs"
+requires-python = ">=3.10"
+dependencies = [
+    "textual>=0.80,<10",
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["sokoban_tui"]
+
+[tool.setuptools.package-data]
+sokoban_tui = ["tui.tcss"]

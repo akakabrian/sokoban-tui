@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+tests/out/*.svg
+.DS_Store
+# vendor level files are small (<500KB total) so we DO commit them —
+# unlike simcity-tui's 153 MB Micropolis tree. Users don't need a
+# bootstrap step; clone is enough.
