@@ -1,12 +1,12 @@
-# DOGFOOD — sokoban-tui
+# DOGFOOD — sokoban
 
-_Session: 2026-04-23T10:10:16, driver: pilot, duration: 8.0 min_
+_Session: 2026-04-23T14:48:43, driver: pty, duration: 1.5 min_
 
-**PASS** — ran for 1.8m, captured 8 snap(s), 3 milestone(s), 0 blocker(s), 1 major(s).
+**PASS** — ran for 1.1m, captured 16 snap(s), 1 milestone(s), 0 blocker(s), 0 major(s).
 
 ## Summary
 
-Ran a rule-based exploratory session via `pilot` driver. Found **1 major(s)**. Game reached 3 unique state snapshots. Captured 3 milestone shot(s); top candidates promoted to `screenshots/candidates/`. 4 coverage note(s) — see Coverage section.
+Ran a rule-based exploratory session via `pty` driver. Found no findings worth flagging. Game reached 66 unique state snapshots. Captured 1 milestone shot(s); top candidates promoted to `screenshots/candidates/`. 1 coverage note(s) — see Coverage section.
 
 ## Findings
 
@@ -15,9 +15,8 @@ Ran a rule-based exploratory session via `pilot` driver. Found **1 major(s)**. G
 _None._
 
 ### Majors
-- **[M1] state appears frozen during golden-path play**
-  - Collected 10 state samples; only 1 unique. Game may not be receiving keys.
-  - Repro: start game → press right/up/left/down repeatedly
+
+_None._
 
 ### Minors
 
@@ -33,31 +32,23 @@ _None._
 
 ## Coverage
 
-- Driver backend: `pilot`
-- Keys pressed: 193 (unique: 22)
-- State samples: 25 (unique: 3)
+- Driver backend: `pty`
+- Keys pressed: 535 (unique: 40)
+- State samples: 93 (unique: 66)
 - Score samples: 0
-- Milestones captured: 3
-- Phase durations (s): A=17.4, B=41.9, C=48.1
-- Snapshots: `/tmp/tui-dogfood-rw-20260423-100821/reports/snaps/sokoban-tui-20260423-100828`
+- Milestones captured: 1
+- Phase durations (s): A=41.1, B=14.6, C=9.1
+- Snapshots: `/home/brian/AI/projects/tui-dogfood/reports/snaps/sokoban-20260423-144736`
 
-Unique keys exercised: /, 3, :, ?, H, R, c, down, enter, escape, h, left, n, p, question_mark, r, right, shift+slash, space, up, w, z
+Unique keys exercised: -, /, 2, 3, 5, :, ;, ?, H, R, ], backspace, c, ctrl+l, delete, down, enter, escape, f1, f2, h, home, k, l, left, m, n, p, page_down, question_mark, r, right, shift+slash, shift+tab, space, up, v, w, x, z
 
 ### Coverage notes
 
-- **[CN1] Phase A exited early due to saturation**
-  - State hash unchanged for 10 consecutive samples after 9 golden-path loop(s); no further learning expected.
-- **[CN2] help modal discovered via high-value key probe**
-  - Pressing '?' changed screen='Screen' → 'HelpScreen' / stack_len=1 → 2. Previously-undiscovered help surface.
-- **[CN3] Phase B exited early due to saturation**
+- **[CN1] Phase B exited early due to saturation**
   - State hash unchanged for 10 consecutive samples during the stress probe; remaining keys skipped.
-- **[CN4] help key opened a previously-undiscovered modal**
-  - Pressing '?' pushed a new screen during the stress probe — worth inspecting the milestone snapshot for help-text quality.
 
 ## Milestones
 
 | Event | t (s) | Interest | File | Note |
 |---|---|---|---|---|
-| first_input | 0.6 | 6155.3 | `sokoban-tui-20260423-100828/milestones/first_input.svg` | key=right |
-| new_modal | 42.1 | 2146.0 | `sokoban-tui-20260423-100828/milestones/new_modal-03.svg` | Screen → HelpScreen |
-| high_density | 53.1 | 6239.0 | `sokoban-tui-20260423-100828/milestones/high_density.svg` | interest=6239.0 |
+| first_input | 0.3 | 0.0 | `sokoban-20260423-144736/milestones/first_input.txt` | key=right |
