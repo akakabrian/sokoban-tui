@@ -15,4 +15,4 @@ build-backend = "setuptools.build_meta"
 packages = ["sokoban_tui"]
 
 [tool.setuptools.package-data]
-sokoban_tui = ["tui.tcss"]
+sokoban_tui = ["tui.tcss", "vendor/**/*"]

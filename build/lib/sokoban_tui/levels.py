@@ -21,7 +21,7 @@ from .engine import Game
 
 # Repo root is two dirs above this file (sokoban_tui/ → repo).
 REPO = Path(__file__).resolve().parent.parent
-VENDOR = REPO / "vendor"
+VENDOR = Path(__file__).resolve().parent / "vendor"
 
 
 @dataclass(frozen=True)
